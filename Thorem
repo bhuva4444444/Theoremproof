@@ -1,0 +1,118 @@
+import tkinter as tk
+from tkinter import ttk
+
+class GeometryVisualizationApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Geometry Visualization")
+        
+        # Canvas
+        self.canvas = tk.Canvas(root, width=400, height=400)
+        self.canvas.pack(side=tk.LEFT, padx=10, pady=10)
+
+        # Left-side widget
+        self.left_frame = ttk.Frame(root)
+        self.left_frame.pack(side=tk.LEFT, padx=10, pady=10)
+
+        # Inner chord inputs
+        self.ab_label = ttk.Label(self.left_frame, text="AB:")
+        self.ab_label.grid(row=0, column=0, sticky="e")
+        self.ab_var = tk.StringVar(value="20")
+        self.ab_entry = ttk.Entry(self.left_frame, textvariable=self.ab_var)
+        self.ab_entry.grid(row=0, column=1)
+
+        # ... Add similar inputs for other inner chords and segments ...
+
+        # Outer chord inputs
+        self.be_label = ttk.Label(self.left_frame, text="BE:")
+        self.be_label.grid(row=7, column=0, sticky="e")
+        self.be_var = tk.StringVar(value="30")
+        self.be_entry = ttk.Entry(self.left_frame, textvariable=self.be_var, state="readonly")
+        self.be_entry.grid(row=7, column=1)
+
+        # ... Add similar inputs for other outer chords and segments ...
+
+        # Right-side widget
+        self.right_frame = ttk.Frame(root)
+        self.right_frame.pack(side=tk.RIGHT, padx=10, pady=10)
+
+        # Length difference display
+        self.length_diff_label = ttk.Label(self.right_frame, text="Length Difference:")
+        self.length_diff_label.grid(row=0, column=0, sticky="e")
+        self.length_diff_var = tk.StringVar(value="0")
+        self.length_diff_entry = ttk.Entry(self.right_frame, textvariable=self.length_diff_var, state="readonly")
+        self.length_diff_entry.grid(row=0, column=1)
+
+        # Initialize points
+        self.points = {'A': (200, 50), 'B': (300, 200), 'C': (200, 350), 'D': (100, 200),
+                       'P': (250, 200), 'E': (400, 200)}
+
+        # Draw initial geometry
+        self.draw_geometry()
+
+        # Bind events
+        self.canvas.bind("<B1-Motion>", self.drag_point)
+        self.update_values()
+
+    def draw_geometry(self):
+        self.canvas.delete("all")
+
+        # Draw circle
+        self.canvas.create_oval(50, 50, 350, 350)
+
+        # Draw chords
+        self.draw_chord('A', 'B')
+        self.draw_chord('C', 'D')
+        self.draw_chord('B', 'E')
+        self.draw_chord('D', 'E')
+
+        # Draw points
+        for point, (x, y) in self.points.items():
+            self.canvas.create_oval(x - 5, y - 5, x + 5, y + 5, fill="black", tags=point)
+
+    def draw_chord(self, point1, point2):
+        x1, y1 = self.points[point1]
+        x2, y2 = self.points[point2]
+        self.canvas.create_line(x1, y1, x2, y2)
+
+    def update_values(self):
+        # Update inner chord values
+        self.ab_var.set(self.calculate_distance('A', 'B'))
+        # ... Update other inner chords and segments ...
+
+        # Calculate outer chords using theorems
+        self.be_var.set(self.calculate_outer_chord('B', 'E'))
+
+        # Update length difference
+        self.length_diff_var.set(self.calculate_length_difference())
+
+    def calculate_distance(self, point1, point2):
+        x1, y1 = self.points[point1]
+        x2, y2 = self.points[point2]
+        return round(((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5, 2)
+
+    def calculate_outer_chord(self, point1, point2):
+        # Use the Power of a Point Theorem to calculate outer chords
+        inner_chord1 = self.calculate_distance('A', 'B')
+        inner_chord2 = self.calculate_distance('C', 'D')
+        distance_to_point1 = self.calculate_distance(point1, 'P')
+        distance_to_point2 = self.calculate_distance(point2, 'P')
+        return round((inner_chord1 * inner_chord2) / (distance_to_point1 * distance_to_point2), 2)
+
+    def calculate_length_difference(self):
+        # Calculate the difference in lengths and return it
+        # (You need to implement this based on your requirements)
+        return 0
+
+    def drag_point(self, event):
+        for point, (x, y) in self.points.items():
+            if abs(event.x - x) < 5 and abs(event.y - y) < 5:
+                self.points[point] = (event.x, event.y)
+                self.draw_geometry()
+                self.update_values()
+                break
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = GeometryVisualizationApp(root)
+    root.mainloop()
